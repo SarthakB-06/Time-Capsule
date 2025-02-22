@@ -25,6 +25,7 @@ const CapsuleSchema = new Schema({
   mediaUrl: { type: String ,
     required: false, 
    }, // Stores S3 URL
+   isUnlocked: { type: Boolean, default: false },
   },{timestamps: true});
   
 

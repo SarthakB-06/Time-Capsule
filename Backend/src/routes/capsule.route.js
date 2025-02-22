@@ -74,4 +74,43 @@ router.get("/:id", verifyJWT, async (req, res) => {
   }
 });
 
+router.patch("/unlock/:id", verifyJWT, async (req, res) => {
+  try {
+    const capsule = await Capsule.findById(req.params.id);
+
+    if (!capsule) {
+      return res.status(404).json({ message: "Capsule not found" });
+    }
+
+    const currentDate = new Date();
+    if (currentDate >= new Date(capsule.unlockDate)) {
+      capsule.isUnlocked = true;
+      await capsule.save();
+      return res.status(200).json({ message: "Capsule unlocked!", capsule });
+    } else {
+      return res.status(403).json({ message: "Capsule is still locked!" });
+    }
+  } catch (error) {
+    console.error("Error unlocking capsule:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+router.post("/unlock/:id", verifyJWT, async (req, res) => {
+  try {
+    const capsule = await Capsule.findById(req.params.id);
+    if (!capsule) return res.status(404).json({ message: "Capsule not found" });
+
+    // Check if already unlocked
+    if (new Date(capsule.unlockDate) > new Date()) {
+      return res.status(403).json({ message: "Capsule cannot be unlocked yet." });
+    }
+
+    // If unlock date has passed, allow unlocking
+    res.status(200).json({ message: "Capsule unlocked successfully." });
+  } catch (error) {
+    console.error("Error unlocking capsule:", error);
+    res.status(500).json({ message: "Internal Server Error", error: error.message });
+  }
+}); 
+
 export default router;
