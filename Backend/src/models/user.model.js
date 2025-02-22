@@ -22,7 +22,9 @@ const CapsuleSchema = new Schema({
   title: { type: String, required: true },
   description: { type: String, required: true },
   unlockDate: { type: Date, required: true },
-  media: { type: String }, // Stores S3 URL
+  mediaUrl: { type: String ,
+    required: false, 
+   }, // Stores S3 URL
   },{timestamps: true});
   
 
