@@ -27,41 +27,37 @@ router.route('/create').post(verifyJWT, upload.single("media"), async (req, res)
     if (req.file) {
       const s3Params = {
         Bucket: process.env.AWS_BUCKET_NAME,
-        Key: `capsules/${Date.now()}_${req.file.originalname}`,
+        Key: `${Date.now()}_${req.file.originalname}`,
         Body: req.file.buffer,
         ContentType: req.file.mimetype,
-        ACL: "public-read",
       };
 
       const command = new PutObjectCommand(s3Params);
-      const s3Upload = await s3Client.send(command);
-      mediaUrl = `https://${s3Params.Bucket}.s3.${process.env.AWS_REGION}.amazonaws.com/${s3Params.Key}`; // Construct the URL
+      const data = await s3Client.send(command);
+      mediaUrl = `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${s3Params.Key}`;
     }
 
-    // Create Capsule in DB
-    const capsule = new Capsule({
+    // Create a new capsule
+    const newCapsule = new Capsule({
       user: req.user.id,
-      title: req.body.title,
-      description: req.body.description,
-      unlockDate: req.body.unlockDate,
-      media: mediaUrl, // Store media URL
+      mediaUrl,
+      ...req.body,
     });
 
-    await capsule.save();
-    res.status(201).json(capsule);
+    await newCapsule.save();
+    res.status(201).json(newCapsule);
   } catch (error) {
-    console.error("Capsule creation error:", error);
-    res.status(500).json({ message: "Failed to create capsule" });
+    console.error("Error creating capsule:", error);
+    res.status(500).json({ message: "Internal Server Error", error: error.message });
   }
 });
-
 router.route('/my-capsules').get(verifyJWT, async (req, res) => {
   try {
     const capsules = await Capsule.find({ user: req.user.id });
-    res.json(capsules);
+    res.status(200).json(capsules);
   } catch (error) {
     console.error("Error fetching capsules:", error);
-    res.status(500).json({ message: "Failed to fetch capsules" });
+    res.status(500).json({ message: "Internal Server Error", error: error.message });
   }
 });
 
