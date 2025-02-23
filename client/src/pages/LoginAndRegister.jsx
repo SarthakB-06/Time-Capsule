@@ -48,12 +48,12 @@ const LoginAndRegister = () => {
 
   return (
     <div className='flex flex-col md:flex-row min-h-screen'>
-      <section className="hidden md:flex md:w-1/2 bg-blue-500 text-white flex-col justify-center items-center p-7">
+      <section className="hidden md:flex md:w-1/2 bg-white  flex-col justify-center items-center p-7">
         <h1 className="text-4xl font-bold">Welcome to Time Capsule</h1>
         <p className="text-lg mt-4">Store your memories securely and relive them later.</p>
         <img src="/assets/timecapsule.png" alt="Time Capsule" className="mt-6 w-3/4" />
         <p className="text-md mt-4">Create a time capsule to preserve your precious moments and unlock them in the future.</p>
-        <button className="mt-6 bg-white text-blue-500 px-4 py-2 rounded-md hover:bg-gray-200 transition">
+        <button className="mt-6 bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-gray-400 transition">
           Learn More
         </button>
       </section>

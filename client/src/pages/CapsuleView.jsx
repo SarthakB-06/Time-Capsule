@@ -1,6 +1,8 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import gsap from 'gsap';
+import { Lock } from 'react-feather';
 
 const CapsuleView = ({ capsule }) => {
   const navigate = useNavigate();
@@ -39,32 +41,40 @@ const CapsuleView = ({ capsule }) => {
           </span>
         </p>
 
-        {/* Lock Status */}
-        {!isUnlocked ? (
-          <p className="text-red-500 font-bold mt-4 text-center text-xl">
-            🔒 This capsule is locked until the unlock date.
-          </p>
-        ) : (
-          capsule.mediaUrl && (
-            <div className="mt-4">
-              {capsule.mediaUrl.endsWith(".mp4") ? (
-                <video
-                  controls
-                  className="w-60 h-60 object-cover rounded-lg shadow-lg"
+        {/* Media Section with Lock Effect */}
+        <div className="relative mt-6 w-full max-w-lg mx-auto">
+          {capsule.mediaUrl ? (
+            isUnlocked ? (
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.8 }}
+              >
+                {capsule.mediaUrl.endsWith(".mp4") ? (
+                  <video controls className="w-full h-64 object-cover rounded">
+                    <source src={capsule.mediaUrl} type="video/mp4" />
+                    Your browser does not support the video tag.
+                  </video>
+                ) : (
+                  <img src={capsule.mediaUrl} alt="Capsule" className="w-64 h-64 object-cover rounded" />
+                )}
+              </motion.div>
+            ) : (
+              <div className="w-full h-64 bg-gray-800 rounded flex justify-center items-center relative">
+                <motion.div 
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ duration: 0.5, ease: "backOut" }}
                 >
-                  <source src={capsule.mediaUrl} type="video/mp4" />
-                  Your browser does not support the video tag.
-                </video>
-              ) : (
-                <img
-                  src={capsule.mediaUrl}
-                  alt="Capsule Media"
-                  className="w-60 h-60 object-cover rounded-lg shadow-lg"
-                />
-              )}
-            </div>
-          )
-        )}
+                  <Lock size={48} className="text-gray-500" />
+                </motion.div>
+                <div className="absolute inset-0 bg-black bg-opacity-60 rounded"></div>
+              </div>
+            )
+          ) : (
+            <p className="text-gray-500">No media available</p>
+          )}
+        </div>
 
         {/* Back Button */}
         <button

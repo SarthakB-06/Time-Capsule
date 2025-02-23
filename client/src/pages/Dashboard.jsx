@@ -48,7 +48,7 @@ const Dashboard = () => {
             const isUnlocked = new Date() >= new Date(capsule.unlockDate);
 
             return (
-              <div key={capsule._id} className="bg-purple-800 p-4 rounded-lg shadow-lg text-white transition-transform transform hover:scale-105">
+              <div key={capsule._id} className="bg-gray-800 p-4 rounded-lg shadow-lg text-white transition-transform transform hover:scale-105">
                 <h2 className="text-xl font-semibold text-yellow-400">{capsule.title}</h2>
                 <p className="text-gray-300">{capsule.description}</p>
                 <p className="text-sm text-gray-400">
