@@ -1,37 +1,81 @@
-import React from 'react'
-import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import axios from "axios";
+import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import gsap from 'gsap';
 
-const CapsuleView = () => {
-    const { id } = useParams();
-    const [capsule, setCapsule] = useState(null);
+const CapsuleView = ({ capsule }) => {
+  const navigate = useNavigate();
 
-    useEffect(() => {
-        const fetchCapsule = async () => {
-          try {
-            const token = localStorage.getItem("token");
-            const response = await axios.get(`http://localhost:8000/api/v1/capsules/${id}`, {
-              headers: { Authorization: `Bearer ${token}` },
-            });
-            setCapsule(response.data);
-          } catch (error) {
-            console.error("Error fetching capsule", error);
-          }
-        };
-    
-        fetchCapsule();
-      }, [id]);
-    
-      if (!capsule) return <p>Loading...</p>;
-  
+  useEffect(() => {
+    if (capsule) {
+      gsap.fromTo(
+        ".capsule-container",
+        { opacity: 0, y: 50 },
+        { opacity: 1, y: 0, duration: 1, ease: "power3.out" }
+      );
+    }
+  }, [capsule]);
+
+  if (!capsule) return <p className="text-white text-center">Loading...</p>;
+
+  // Check if capsule is unlocked
+  const isUnlocked = new Date() >= new Date(capsule.unlockDate);
+
   return (
-    <div className="p-6">
-    <h1 className="text-2xl font-bold">{capsule.title}</h1>
-    <p>{capsule.description}</p>
-    <p>Unlock Date: {new Date(capsule.unlockDate).toLocaleDateString()}</p>
-  </div>
-  )
-}
+    <div
+      className="p-6 bg-gray-900 min-h-screen text-white flex flex-col items-center"
+      style={{
+        backgroundImage: 'url(/assets/background.jpg)', // Add your background image here
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }}
+    >
+      <div className="capsule-container bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-2xl">
+        <h1 className="text-3xl font-bold text-yellow-400 text-center">{capsule.title}</h1>
+        <p className="text-gray-300 text-lg mt-4">{capsule.description}</p>
+        <p className="text-lg mt-2 text-cyan-300 font-semibold">
+          Unlock Date:{" "}
+          <span className="text-yellow-300 animate-pulse">
+            {new Date(capsule.unlockDate).toLocaleDateString()}
+          </span>
+        </p>
 
-export default CapsuleView
+        {/* Lock Status */}
+        {!isUnlocked ? (
+          <p className="text-red-500 font-bold mt-4 text-center text-xl">
+            🔒 This capsule is locked until the unlock date.
+          </p>
+        ) : (
+          capsule.mediaUrl && (
+            <div className="mt-4">
+              {capsule.mediaUrl.endsWith(".mp4") ? (
+                <video
+                  controls
+                  className="w-full h-60 object-cover rounded-lg shadow-lg"
+                >
+                  <source src={capsule.mediaUrl} type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
+              ) : (
+                <img
+                  src={capsule.mediaUrl}
+                  alt="Capsule Media"
+                  className="w-full h-60 object-cover rounded-lg shadow-lg"
+                />
+              )}
+            </div>
+          )
+        )}
+
+        {/* Back Button */}
+        <button
+          onClick={() => navigate("/dashboard")}
+          className="mt-6 w-full text-center py-2 px-4 bg-purple-500 hover:bg-purple-600 text-white font-semibold rounded-lg transition-all"
+        >
+          ← Back to Dashboard
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default CapsuleView;

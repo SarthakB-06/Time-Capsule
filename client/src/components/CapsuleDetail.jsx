@@ -5,8 +5,8 @@ import axios from "axios";
 const CapsuleDetail = () => {
   const { id } = useParams();
   const [capsule, setCapsule] = useState(null);
+  const [timeLeft, setTimeLeft] = useState(null);
   const [isUnlocked, setIsUnlocked] = useState(false);
-  const [message, setMessage] = useState("");
 
   useEffect(() => {
     const fetchCapsule = async () => {
@@ -16,6 +16,7 @@ const CapsuleDetail = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         setCapsule(response.data);
+        calculateTimeLeft(response.data.unlockDate);
       } catch (error) {
         console.error("Error fetching capsule", error);
       }
@@ -24,65 +25,81 @@ const CapsuleDetail = () => {
     fetchCapsule();
   }, [id]);
 
-  const handleUnlock = async () => {
-    try {
-      const unlockDate = new Date(capsule.unlockDate);
-      const currentDate = new Date();
+  const calculateTimeLeft = (unlockDate) => {
+    const unlockTime = new Date(unlockDate).getTime();
+    const interval = setInterval(() => {
+      const now = new Date().getTime();
+      const timeDifference = unlockTime - now;
 
-      // ✅ Prevent unlocking before unlock date
-      if (currentDate < unlockDate) {
-        setMessage(`🔒 This capsule will unlock on ${unlockDate.toLocaleDateString()}`);
-        return;
+      if (timeDifference <= 0) {
+        clearInterval(interval);
+        setTimeLeft(null);
+        setIsUnlocked(true);
+
+        // Auto-refresh capsule data after unlock
+        setTimeout(() => {
+          refreshCapsuleData();
+        }, 1000); // Small delay to avoid race conditions
+      } else {
+        const days = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((timeDifference % (1000 * 60)) / 1000);
+
+        setTimeLeft(`${days}d ${hours}h ${minutes}m ${seconds}s`);
       }
+    }, 1000);
+  };
 
+  const refreshCapsuleData = async () => {
+    try {
       const token = localStorage.getItem("token");
-      await axios.post(`http://localhost:8000/api/v1/capsules/unlock/${id}`, {}, {
+      const response = await axios.get(`http://localhost:8000/api/v1/capsules/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
-      setIsUnlocked(true);
-      setMessage("✅ Capsule unlocked successfully!");
+      setCapsule(response.data);
     } catch (error) {
-      console.error("Error unlocking capsule", error);
-      setMessage("❌ Failed to unlock capsule. Please try again.");
+      console.error("Error refreshing capsule data", error);
     }
   };
 
-  if (!capsule) return <p>Loading...</p>;
-
-  const isUnlockable = new Date() >= new Date(capsule.unlockDate);
-
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold">{capsule.title}</h1>
-      <p>{capsule.description}</p>
+      {capsule ? (
+        <div className="bg-gray-800 p-6 rounded-lg shadow-md">
+          <h1 className="text-2xl font-bold">{capsule.title}</h1>
+          <p>{capsule.description}</p>
 
-      {/* Show Media if Unlocked */}
-      {isUnlocked && capsule.mediaUrl && (
-        <div className="mt-4">
-          {capsule.mediaUrl.endsWith(".mp4") ? (
-            <video controls className="w-full h-40 object-cover">
-              <source src={capsule.mediaUrl} type="video/mp4" />
-            </video>
+          {/* Countdown Timer */}
+          {!isUnlocked ? (
+            <p className="text-yellow-400 text-lg font-semibold mt-2">Unlocks in: {timeLeft}</p>
           ) : (
-            <img src={capsule.mediaUrl} alt="Capsule" className="w-full h-40 object-cover rounded" />
+            <p className="text-green-500 text-lg font-semibold mt-2">Unlocked! 🎉</p>
+          )}
+
+          {/* Show Image/Video ONLY if Unlocked */}
+          {isUnlocked && capsule.mediaUrl && (
+            <div className="mt-4">
+              {capsule.mediaUrl.endsWith(".mp4") ? (
+                <video controls className="w-full h-40 object-cover">
+                  <source src={capsule.mediaUrl} type="video/mp4" />
+                </video>
+              ) : (
+                <img src={capsule.mediaUrl} alt="Capsule" className="w-full h-40 object-cover rounded" />
+              )}
+            </div>
+          )}
+
+          {/* Unlock Button (Disabled if Locked) */}
+          {!isUnlocked && (
+            <button className="mt-4 bg-red-500 text-white px-4 py-2 rounded" disabled>
+              Locked 🔒
+            </button>
           )}
         </div>
+      ) : (
+        <p>Loading capsule details...</p>
       )}
-
-      {/* Unlock Button */}
-      <button
-        onClick={handleUnlock}
-        disabled={!isUnlockable}
-        className={`mt-4 px-4 py-2 rounded ${
-          isUnlockable ? "bg-green-500 text-white" : "bg-gray-400 text-gray-200 cursor-not-allowed"
-        }`}
-      >
-        {isUnlockable ? "🔓 Unlock Capsule" : `🔒 Unlocks on ${new Date(capsule.unlockDate).toLocaleDateString()}`}
-      </button>
-
-      {/* Display Messages */}
-      {message && <p className="mt-2 text-sm text-gray-500">{message}</p>}
     </div>
   );
 };

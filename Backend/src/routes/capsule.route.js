@@ -2,6 +2,7 @@ import { Router } from "express";
 import { Capsule } from "../models/user.model.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { sendEmail } from "../utils/email.js";
 import multer from "multer";
 
 const router = Router();
@@ -48,6 +49,17 @@ router.route('/create').post(verifyJWT, upload.single("media"), async (req, res)
     });
       console.log("New Capsule:", newCapsule);
     await newCapsule.save();
+
+    const emailContent = `
+      <h2>Your Time Capsule has been created!</h2>
+      <p><strong>Title:</strong> ${newCapsule.title}</p>
+      <p><strong>Description:</strong> ${newCapsule.description}</p>
+      <p><strong>Unlock Date:</strong> ${new Date(newCapsule.unlockDate).toLocaleString()}</p>
+      <p>You'll receive a reminder email 24 hours before unlocking.</p>
+    `;
+
+    sendEmail(req.user.email, "Time Capsule Created!", emailContent);
+
     res.status(201).json(newCapsule);  
   } catch (error) {
     console.error("Error creating capsule:", error);

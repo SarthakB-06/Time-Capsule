@@ -1,87 +1,11 @@
-// import { useEffect, useState } from "react";
-// import { Link } from "react-router-dom";
-// import axios from "axios";
-
-// const Dashboard = () => {
-//   const [capsules, setCapsules] = useState([]);
-
-//   useEffect(() => {
-//     const fetchCapsules = async () => {
-//       try {
-//         const token = localStorage.getItem("token"); // Get JWT
-//         const response = await axios.get("http://localhost:8000/api/v1/capsules/my-capsules", {
-//           headers: { Authorization: `Bearer ${token}` },
-//         });
-//         setCapsules(response.data);
-//       } catch (error) {
-//         console.error("Error fetching capsules", error);
-//       }
-//     };
-
-//     fetchCapsules();
-//   }, []);
-
-//   return (
-//     <div className="p-6">
-//       <div className="flex justify-between items-center mb-4">
-//         <h1 className="text-2xl font-bold">Your Capsules</h1>
-//         <Link to="/create" className="bg-blue-500 text-white px-4 py-2 rounded">
-//           + Create Capsule
-//         </Link>
-//       </div>
-
-//       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-//         {capsules.length > 0 ? (
-//           capsules.map((capsule) => (
-//             <div key={capsule._id} className="bg-gray-800 p-4 rounded-lg shadow">
-//               <h2 className="text-xl font-semibold">{capsule.title}</h2>
-//               <p>{capsule.description}</p>
-//               <p className="text-sm text-gray-400">
-//                 Unlocks on: {new Date(capsule.unlockDate).toLocaleDateString()}
-//               </p>
-
-//               {/* Show Image/Video if exists */}
-//               {capsule.media && (
-//                 <div className="mt-2">
-//                   {capsule.media.endsWith(".mp4") ? (
-//                     <video controls className="w-full h-40 object-cover">
-//                       <source src={capsule.media} type="video/mp4" />
-//                       Your browser does not support the video tag.
-//                     </video>
-//                   ) : (
-//                     <img
-//                       src={capsule.media}
-//                       alt="Capsule"
-//                       className="w-full h-40 object-cover rounded"
-//                     />
-//                   )}
-//                 </div>
-//               )}
-
-//               <Link to={`/capsule/${capsule._id}`} className="mt-2 inline-block text-blue-400">
-//                 View Capsule →
-//               </Link>
-//             </div>
-//           ))
-//         ) : (
-//           <p>No capsules found. Create one!</p>
-//         )}
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default Dashboard;
-
-
-
-
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
+import gsap from "gsap";
 
 const Dashboard = () => {
   const [capsules, setCapsules] = useState([]);
+  const capsulesRef = useRef(null);
 
   useEffect(() => {
     const fetchCapsules = async () => {
@@ -99,24 +23,34 @@ const Dashboard = () => {
     fetchCapsules();
   }, []);
 
+  useEffect(() => {
+    if (capsules.length > 0) {
+      gsap.fromTo(
+        capsulesRef.current.children,
+        { opacity: 0, y: 50 },
+        { opacity: 1, y: 0, stagger: 0.3, duration: 0.5, ease: "power3.out" }
+      );
+    }
+  }, [capsules]);
+
   return (
-    <div className="p-6">
+    <div className="p-6 bg-gray-950 min-h-screen text-white">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold text-black">Your Capsules</h1>
-        <Link to="/create" className="bg-blue-500 text-white px-4 py-2 rounded">
+        <h1 className="text-2xl font-bold text-white">Your Capsules</h1>
+        <Link to="/create" className="bg-purple-600 hover:bg-purple-500 text-white px-4 py-2 rounded-md transition">
           + Create Capsule
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div ref={capsulesRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {capsules.length > 0 ? (
           capsules.map((capsule) => {
             const isUnlocked = new Date() >= new Date(capsule.unlockDate);
 
             return (
-              <div key={capsule._id} className="bg-gray-800 p-4 rounded-lg shadow text-white">
-                <h2 className="text-xl font-semibold">{capsule.title}</h2>
-                <p>{capsule.description}</p>
+              <div key={capsule._id} className="bg-purple-800 p-4 rounded-lg shadow-lg text-white transition-transform transform hover:scale-105">
+                <h2 className="text-xl font-semibold text-yellow-400">{capsule.title}</h2>
+                <p className="text-gray-300">{capsule.description}</p>
                 <p className="text-sm text-gray-400">
                   Unlocks on: {new Date(capsule.unlockDate).toLocaleDateString()}
                 </p>
@@ -132,7 +66,7 @@ const Dashboard = () => {
                 {capsule.media && (
                   <div className="mt-2">
                     {capsule.media.endsWith(".mp4") ? (
-                      <video controls className="w-full h-40 object-cover rounded">
+                      <video controls className="w-full h-40 object-cover rounded-md">
                         <source src={capsule.media} type="video/mp4" />
                         Your browser does not support the video tag.
                       </video>
@@ -140,7 +74,7 @@ const Dashboard = () => {
                       <img
                         src={capsule.media}
                         alt="Capsule"
-                        className="w-full h-40 object-cover rounded"
+                        className="w-full h-40 object-cover rounded-md"
                       />
                     )}
                   </div>
@@ -148,7 +82,7 @@ const Dashboard = () => {
 
                 <Link
                   to={`/capsule/${capsule._id}`}
-                  className="mt-2 inline-block text-blue-400 font-semibold"
+                  className="mt-2 inline-block text-cyan-400 font-semibold hover:text-cyan-300 transition"
                 >
                   View Capsule →
                 </Link>
@@ -156,7 +90,7 @@ const Dashboard = () => {
             );
           })
         ) : (
-          <p className="text-white">No capsules found. Create one!</p>
+          <p className="text-gray-300">No capsules found. Create one!</p>
         )}
       </div>
     </div>
@@ -164,4 +98,3 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
-
