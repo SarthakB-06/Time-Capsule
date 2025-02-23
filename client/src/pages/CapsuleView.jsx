@@ -50,7 +50,7 @@ const CapsuleView = ({ capsule }) => {
               {capsule.mediaUrl.endsWith(".mp4") ? (
                 <video
                   controls
-                  className="w-full h-60 object-cover rounded-lg shadow-lg"
+                  className="w-60 h-60 object-cover rounded-lg shadow-lg"
                 >
                   <source src={capsule.mediaUrl} type="video/mp4" />
                   Your browser does not support the video tag.
@@ -59,7 +59,7 @@ const CapsuleView = ({ capsule }) => {
                 <img
                   src={capsule.mediaUrl}
                   alt="Capsule Media"
-                  className="w-full h-60 object-cover rounded-lg shadow-lg"
+                  className="w-60 h-60 object-cover rounded-lg shadow-lg"
                 />
               )}
             </div>
