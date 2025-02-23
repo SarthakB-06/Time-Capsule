@@ -4,7 +4,8 @@ import { verifyJWT } from "../middlewares/auth.middleware.js";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { sendEmail } from "../utils/email.js";
 import multer from "multer";
-
+// import express from "express";
+import { analyzeSentiment } from "../controllers/capsule.controller.js";
 const router = Router();
 
 const s3Client = new S3Client({
@@ -124,5 +125,7 @@ router.post("/unlock/:id", verifyJWT, async (req, res) => {
     res.status(500).json({ message: "Internal Server Error", error: error.message });
   }
 }); 
+
+router.post("/analyze-sentiment", analyzeSentiment);
 
 export default router;

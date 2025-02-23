@@ -6,6 +6,8 @@ import gsap from "gsap";
 const Dashboard = () => {
   const [capsules, setCapsules] = useState([]);
   const capsulesRef = useRef(null);
+  const [sentiments, setSentiments] = useState({}); 
+  
 
   useEffect(() => {
     const fetchCapsules = async () => {
